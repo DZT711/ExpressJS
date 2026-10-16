@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var { notFoundHandler, errorHandler } = require('../middleware/errorHandler');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -15,16 +16,17 @@ router.delete('/', function(req, res, next) {
   res.send('DELETE');
 });
 
-// TEST: trigger the 500 handler below — DELETE after testing!
-// router.get('/boom', function(req, res, next) {
-//   throw new Error('Boom! testing Something broke!');
+// router.use((req, res, next) => {
+//   res.status(404).send('Are you stupid?');
 // });
-
-router.use((req, res, next) => {
-  res.status(404).send('Are you stupid?');
+// router.use((err, req, res, next) => {
+//   console.error(err.stack);
+//   res.status(500).send('Something broke!');
+// });
+// TEST: trigger the 500 handler below — DELETE after testing!
+router.get('/boom', function(req, res, next) {
+  throw new Error('Boom! testing Something broke!');
 });
-router.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).send('Something broke!');
-});
+router.use(notFoundHandler);
+router.use(errorHandler);
 module.exports = router;
