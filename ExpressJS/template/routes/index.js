@@ -50,11 +50,24 @@ router.get('/books/:bookId', (req, res) => {
   res.send(req.params.bookId);
 })
 
+//Wildcards (Express 5 named wildcard: req.params.filepath is an array)
+// GET http://localhost:3000/files/readme.txt
 
-router.get('/files/*filepath', (req, res) => {
+router.get('/files/{*filepath}', (req, res) => {
   console.dir(req.params.filepath);
   res.send(`File: ${req.params.filepath.join('/')}`);
 })
+
+// router.get('/{*splat}', (req, res) => {
+//   res.send('ok');
+// })
+
+//Optional segments
+// GET http://localhost:3000/readme.md
+router.get('/:file{.:ext}', (req, res) => {
+  res.send('ok');
+})
+
 // TEST: 404 + 500 + /boom trigger all mounted by ONE call — MUST BE LAST
 handleErrors(router);
 
