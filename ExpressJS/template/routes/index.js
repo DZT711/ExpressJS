@@ -82,6 +82,21 @@ router.get('/rules{/:ruleId}', (req, res) => {
   res.send('rule index ok');
 })
 
+// Route handlers
+// GET /pen/5 → handled by first route → sends “pen 5”
+// GET /pen/0 → first route calls next('route'), skipping to the next matching /pens/:penId route
+router.get('/pens/:penId', (req, res, next) => {
+  if (req.params.penId === '0') {
+    return next('route');
+  }
+  res.send(`pen ${req.params.penId} index ok`);
+})
+router.get('/pens/:penId', (req, res, ) => {
+
+  res.send(`Special handler for pen ID 0`);
+})
+
+
 
   // TEST: 404 + 500 + /boom trigger all mounted by ONE call — MUST BE LAST
 handleErrors(router);
