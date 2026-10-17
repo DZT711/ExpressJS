@@ -57,18 +57,33 @@ router.get('/files/{*filepath}', (req, res) => {
   console.dir(req.params.filepath);
   res.send(`File: ${req.params.filepath.join('/')}`);
 })
-
+// (catch-all route) with GET method.
 // router.get('/{*splat}', (req, res) => {
-//   res.send('ok');
-// })
-
-//Optional segments
-// GET http://localhost:3000/readme.md
-router.get('/:file{.:ext}', (req, res) => {
-  res.send('ok');
+  //   res.send('api ok');
+  // })
+  
+  
+  //Optional segments
+  // GET http://localhost:3000/readme.md
+  // router.get('/:file{.:ext}', (req, res) => {
+    //   res.send('file ok');
+    // })
+    
+  // GET /papers/42 => req.params = { id: '42' }
+  // GET /papers/ => req.params = {}
+  // GET /papers => 404, only the parameter is optional
+router.get('/papers/{:paperId}', (req, res) => {
+  res.send('paper index ok');
 })
 
-// TEST: 404 + 500 + /boom trigger all mounted by ONE call — MUST BE LAST
+ /// GET /rules/42 => req.params = { id: '42' }
+  // GET /rules => req.params = {}, the whole segment is optional
+router.get('/rules{/:ruleId}', (req, res) => {
+  res.send('rule index ok');
+})
+
+
+  // TEST: 404 + 500 + /boom trigger all mounted by ONE call — MUST BE LAST
 handleErrors(router);
 
 module.exports = router;
