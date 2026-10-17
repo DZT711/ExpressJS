@@ -9,6 +9,7 @@ npm start
 
 or with auto-reload:
 ```cmd
+cd /workspaces/ExpressJS/ExpressJS/template &&
 npx nodemon ./bin/www
 ```
 
