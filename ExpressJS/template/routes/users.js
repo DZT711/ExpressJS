@@ -16,6 +16,10 @@ router.delete('/', function(req, res, next) {
   res.send('DELETE');
 });
 
+// Named parameters
+router.get('/:userId', (req, res) => {
+  res.send(req.params.userId);
+})
 // TEST: 404 + 500 + /boom trigger all mounted by ONE call — see middleware/errorHandler.js
 handleErrors(router);
 

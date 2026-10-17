@@ -37,13 +37,24 @@ router.all('/secret', (req, res, next) => {
 });
 
 // Regular expressions
-router.get(/a/, (req, res) => {
-  res.send('Matched a route with "a" in the path!');
-});
-router.get(/.*b$/, (req, res) => {
-  res.send('Matched a route ending with "b"!');
-});
+// router.get(/a/, (req, res) => {
+//   res.send('Matched a route with "a" in the path!');
+// });
+// router.get(/.*b$/, (req, res) => {
+//   res.send('Matched a route ending with "b"!');
+// });
 
+// Named parameters
+
+router.get('/books/:bookId', (req, res) => {
+  res.send(req.params.bookId);
+})
+
+
+router.get('/files/*filepath', (req, res) => {
+  console.dir(req.params.filepath);
+  res.send(`File: ${req.params.filepath.join('/')}`);
+})
 // TEST: 404 + 500 + /boom trigger all mounted by ONE call — MUST BE LAST
 handleErrors(router);
 
