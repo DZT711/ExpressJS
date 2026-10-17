@@ -113,6 +113,19 @@ const cb2 = function (req, res) {
 
 router.get('/example/c', [cb0,cb1,cb2]);
 
+// router func
+router.route('/book').get((req, res) => {
+  res.send('get a random book')
+  })
+  .post((req, res) => {
+    res.send('add a book')
+  })
+  .put((req, res) => {
+    res.send('update the book')
+});
+
+
+
   // TEST: 404 + 500 + /boom trigger all mounted by ONE call — MUST BE LAST
 handleErrors(router);
 
