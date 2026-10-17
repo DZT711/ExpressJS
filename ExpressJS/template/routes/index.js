@@ -96,7 +96,22 @@ router.get('/pens/:penId', (req, res, ) => {
   res.send(`Special handler for pen ID 0`);
 })
 
+const cb0 = function (req, res, next) {
+  console.log('CB0');
+  next();
+};
 
+const cb1 = function (req, res, next) {
+  console.log('CB1');
+  next();
+};
+
+const cb2 = function (req, res) {
+  res.send('Hello from C!');
+};
+
+
+router.get('/example/c', [cb0,cb1,cb2]);
 
   // TEST: 404 + 500 + /boom trigger all mounted by ONE call — MUST BE LAST
 handleErrors(router);
