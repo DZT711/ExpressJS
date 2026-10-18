@@ -8,6 +8,7 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var birdsRouter = require('./routes/birds');
 var timeReqRouter = require('./index.cjs');
+var Bread = require('./models/bread');
 
 var app = express();
 
@@ -63,7 +64,107 @@ app.get('/peoples/:peopleId', (req, res) => {
   res.send('special');
 });
 
+// Errors in synchronous code
+app.get('/catchErr', (req, res) => {
+  throw new Error('This is an error!');
+});
 
+app.get('/breads/:breadId', async (req, res, next) => {
+  try {
+    const bread = await Bread.findById(req.params.breadId);
+
+    if (!bread) {
+      const err = new Error('Bread not found');
+      err.status = 404;
+      throw err;
+    }
+    res.send(bread);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Working with promise chains
+app.get('/catchErr1',async (req, res) => {
+  return Promise.resolve().then(() => {
+
+    throw new Error('Promise error!');
+  });
+});
+
+app.get('/catchErr2',async (req, res,next) => {
+  Promise.resolve().then(() => {
+
+    throw new Error('Promise 2 error!');
+  })
+    .catch(next);
+});
+
+// Working with callback APIs
+const fs=require('fs');
+app.get('/callback', (req, res,next) => {
+  fs.readFile('//workspaces/ExpressJS/README.md', (err, data) => {
+    if (err) {
+      next(err);
+    } else {
+      res.send(data);
+    }
+  });
+});
+
+app.get('/callback1',[ (req, res,next) => {
+  fs.writeFile('//workspaces/ExpressJS/README.md', 'data', next);
+},
+
+  (req, res) => {
+    res.send('File written successfully');
+  },
+]);
+
+app.get('/callback2',[ (req, res,next) => {
+  fs.readFile('//workspaces/ExpressJS/ExpressJS/template/persons.txt', 'utf-8', (err, data) => {
+    res.locals.data = data;
+    next(err);
+  });
+},
+
+  (req, res) => {
+    res.locals.data=res.locals.data.split(',');
+    res.send(res.locals.data);
+  },
+]);
+
+app.get('/callback3', (req, res,next) => {
+  setTimeout(() => {
+    try {
+      throw new Error('This is an error from setTimeout!');
+    } catch (err) {
+      next(err);
+    }
+  }, 500);
+});
+
+// Writing error handlers
+
+app.get('/eh', (req, res, next) => {
+  if (!req.user.hasPaid) {
+    const err = new Error('Payment required');
+    err.status = 402;
+    next(err);
+  }
+  else {
+    next();
+  }
+},
+  (req, res, next) => {
+    PaidContent.find((err,doc) => {
+      if (err) {
+        return next(err);
+        res.json
+      } 
+    );
+  }
+});
 
 app.use('/users', usersRouter);
 app.use('/birds', birdsRouter);
