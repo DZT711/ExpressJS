@@ -21,6 +21,12 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Middleware mounted on a path
+app.use('/users/:userId',(req,res,next)=>{
+  console.log('Request Type:', req.method);
+  next();
+});
+
 app.use('/users', usersRouter);
 app.use('/birds', birdsRouter);
 app.use('/reqtime', timeReqRouter);
@@ -47,6 +53,7 @@ app.get('/', (req, res) => {
 //     reqText += `<p>You requested at : ${req.reqTime}</p>`;
 //     req.setEncoding(reqText);
 // });
+
 
 
 // catch 404 and forward to error handler
