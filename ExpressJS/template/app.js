@@ -27,6 +27,17 @@ app.use('/users/:userId',(req,res,next)=>{
   next();
 });
 
+// Middleware sub-stacks
+app.use('/index/', (req, res, next) => {
+  console.log('Request Type:', req.method);
+  next();
+},
+  (req, res, next) => {
+    console.log('Request URL:', req.originalUrl);
+    next();
+});
+
+
 app.use('/users', usersRouter);
 app.use('/birds', birdsRouter);
 app.use('/reqtime', timeReqRouter);
