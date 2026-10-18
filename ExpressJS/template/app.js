@@ -46,9 +46,25 @@ app.get('/examples/:exampleId', (req, res, next) => {
   // next();
   }
 );
+// req handler
 // app.get('/examples/:exampleId', (req, res) => {
 //   res.send(req.params.exampleId);
 // });
+
+// Skipping to the next route
+app.get('/peoples/:peopleId', (req, res,next) => {
+  if (req.params.peopleId === '0') next('route');
+  else next();
+}, (req, res) => {
+  res.send('regular');
+});
+// req handler
+app.get('/peoples/:peopleId', (req, res) => {
+  res.send('special');
+});
+
+
+
 app.use('/users', usersRouter);
 app.use('/birds', birdsRouter);
 app.use('/reqtime', timeReqRouter);
