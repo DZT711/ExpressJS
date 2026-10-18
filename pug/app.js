@@ -11,13 +11,7 @@ app.get('/', (req, res) => {
   res.send('Hello Expresser!');
 });
 
-// Route API mẫu
-app.get('/users/:userId', (req, res) => {
-  res.json({
-    userId: req.params.userId
-  });
-});
-
+app.set('view engine', 'pug');
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
