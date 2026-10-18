@@ -144,10 +144,36 @@ app.get('/callback3', (req, res,next) => {
   }, 500);
 });
 
+
 // Writing error handlers
 
-app.get('/eh', (req, res, next) => {
-  if (!req.user.hasPaid) {
+// Dữ liệu user giả lập
+app.use((req, res, next) => {
+  req.user = {
+    id: 1,
+    hasPaid: req.query.paid === 'true'
+  };
+
+  next();
+});
+
+// Dữ liệu nội dung trả phí giả lập
+const PaidContent = [
+  {
+    id: 1,
+    title: 'ExpressJS',
+    content: 'Middleware và routing'
+  },
+  {
+    id: 2,
+    title: 'Node.js',
+    content: 'Xử lý bất đồng bộ'
+  }
+];
+
+
+app.get('/errorhandling', (req, res, next) => {
+  if (!req.user || !req.user.hasPaid) {
     const err = new Error('Payment required');
     err.status = 402;
     next(err);
@@ -157,14 +183,14 @@ app.get('/eh', (req, res, next) => {
   }
 },
   (req, res, next) => {
-    PaidContent.find((err,doc) => {
+    PaidContent.find((err, doc) => {
       if (err) {
         return next(err);
-        res.json
-      } 
-    );
+      }
+      res.json(doc);
+    });
   }
-});
+);
 
 app.use('/users', usersRouter);
 app.use('/birds', birdsRouter);
