@@ -37,7 +37,18 @@ app.use('/index/', (req, res, next) => {
     next();
 });
 
-
+// Multiple route handlers
+app.get('/examples/:exampleId', (req, res, next) => {
+    console.log('ID:', req.params.exampleId);
+    next();
+  }, (req, res) => {
+  res.send('example Info');
+  // next();
+  }
+);
+// app.get('/examples/:exampleId', (req, res) => {
+//   res.send(req.params.exampleId);
+// });
 app.use('/users', usersRouter);
 app.use('/birds', birdsRouter);
 app.use('/reqtime', timeReqRouter);
