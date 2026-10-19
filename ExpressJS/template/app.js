@@ -7,6 +7,7 @@ var logger = require('morgan');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var birdsRouter = require('./routes/birds');
+var dbRouter = require('./routes/db');
 var timeReqRouter = require('./index.cjs');
 var Bread = require('./models/bread');
 
@@ -196,7 +197,7 @@ app.use('/users', usersRouter);
 app.use('/birds', birdsRouter);
 app.use('/reqtime', timeReqRouter);
 app.use('/index', indexRouter);
-
+app.use('/db', dbRouter);
 // Middleware function myLogger
 const Logger = (req, res, next) => {
   console.log('LOGGED')
