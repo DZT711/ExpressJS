@@ -3,7 +3,7 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-
+const FS = require('fs');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var birdsRouter = require('./routes/birds');
@@ -192,7 +192,19 @@ app.get('/errorhandling', (req, res, next) => {
     });
   }
 );
+app.engine('ntl', (filePath, options, callback) => {
+  FS.readFile(filePath, (err, content) => {
+    if (err) return callback(err);
+    const rendered = content.toString().replace('#title#', '' + options.title + '').replace('#message#', '' + options.message + '');
+    return callback(null, rendered);
+  });
+});
+app.set('views', './views');
+app.set('view engine', 'ntl');
 
+app.get('/ntl', (req, res) => {
+  res.render('index', { title: 'My Page', message: 'Hello, World!' });
+});
 app.use('/users', usersRouter);
 app.use('/birds', birdsRouter);
 app.use('/reqtime', timeReqRouter);
