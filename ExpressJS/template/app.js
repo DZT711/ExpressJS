@@ -22,6 +22,10 @@ app.set('trust proxy', 1); // trust first proxy
 const compression = require('compression');
 const helmet = require('helmet');
 const session = require('express-session');
+// const server=app.listen(process.env.PORT || 3000, () => {
+//   console.log(`Server is running on port ${process.env.PORT || 3000}`);
+// });
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -372,3 +376,9 @@ app.use(function(err, req, res, next) {
 
 
 module.exports = app;
+// process.on('SIGTERM', () => {
+//   debug('SIGTERM signal received: closing HTTP server');
+//   server.close(() => {
+//     console.log('Server closed');
+//   });
+// });
