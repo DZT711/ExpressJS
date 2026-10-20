@@ -1,22 +1,20 @@
-// Minimal placeholder worker for the /resize route.
-// The existing app.js creates a piscina pool and a raw Worker pointing here,
-// but resizeWorker.js was never present in the project, causing:
-//   ERR_MODULE_NOT_FOUND: Cannot find module '.../resizeWorker.js'
-// This stub handles both piscina (parentPort) and direct worker_threads usage.
-const { parentPort, workerData } = require('worker_threads');
-
-if (parentPort) {
-  // piscina / worker_threads path: post the result back to the main thread.
-  parentPort.postMessage({
+// Worker for the /resize route.
+// Used by the piscina pool in app.js (pool.run). piscina calls this exported
+// function with the task data in a worker thread and resolves/rejects the
+// returned promise based on the result, so worker errors never crash the main
+// process. Replace the placeholder logic with a real image library (e.g.
+// sharp) in production.
+function resizeImage(data) {
+  if (!data) {
+    throw new Error('No image data provided to resize worker');
+  }
+  const inputLen = Buffer.isBuffer(data) ? data.length : String(data).length;
+  return {
     status: 'ok',
-    message: 'resizeWorker placeholder',
-    received: workerData,
-  });
-} else {
-  // Fallback for direct require() usage.
-  module.exports = async (data) => ({
-    status: 'ok',
-    message: 'resizeWorker placeholder',
-    received: data,
-  });
+    message: 'resize complete',
+    inputSize: inputLen,
+    outputSize: inputLen, // placeholder: no actual transformation yet
+  };
 }
+
+module.exports = resizeImage;

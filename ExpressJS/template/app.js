@@ -207,7 +207,7 @@ app.engine('ntl', (filePath, options, callback) => {
     return callback(null, rendered);
   });
 });
-app.set('views', './views');
+app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ntl');
 
 app.get('/ntl', (req, res) => {
@@ -295,17 +295,19 @@ app.use((err,req,res,next) => {
   res.status(err.status??500).send(`Error: ${err.message}`);
 });
 
-// Use worker threads for CPU-intensive tasks
+// Use worker threads (piscina pool) for CPU-intensive tasks
 app.post('/resize', (req, res, next) => {
-  const worker = new Worker('./resizeWorker.js', {
-    workerData: req.body.imageData // Assuming image data is sent in the request body
-  });
-  worker.once('message', (result) => {
-    res.send(result);
-  });
-  worker.once('error', (err) => {
-    next(err);
-  });
+  const imageData = req.body && req.body.imageData;
+  if (imageData === undefined) {
+    const err = new Error('imageData is required');
+    err.status = 400;
+    return next(err);
+  }
+
+  pool
+    .run(imageData)
+    .then((result) => res.json(result))
+    .catch((err) => next(err));
 });
 
 app.use('/users', usersRouter);
@@ -350,7 +352,7 @@ app.use(function(err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
-  res.render('error');
+  res.render('error', { title: 'Error', message: err.message });
 });
 
 
