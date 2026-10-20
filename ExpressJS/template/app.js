@@ -18,7 +18,10 @@ const pool = new piscina({
   filename: wkpath.resolve(__dirname, 'resizeWorker.js')
 });
 var app = express();
+app.set('trust proxy', 1); // trust first proxy
 const compression = require('compression');
+const helmet = require('helmet');
+const session = require('express-session');
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -29,8 +32,19 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(compression());
-
-
+app.use(helmet());
+app.disable('x-powered-by');
+// Prevent open redirects
+// app.use((req, res) => {
+//   try {
+//     if (new URL(req.query.url).host !== 'example.com') {
+//       return res.status(400).end(`Unsupported redirect to host: ${req.query.url}`);
+//     }
+//   } catch (e) {
+//     return res.status(400).end(`Invalid url: ${req.query.url}`);
+//   }
+//   res.redirect(req.query.url);
+// });
 // Middleware mounted on a path
 app.use('/users/:userId',(req,res,next)=>{
   console.log('Request Type:', req.method);
