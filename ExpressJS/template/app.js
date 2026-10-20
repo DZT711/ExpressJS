@@ -4,15 +4,21 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const FS = require('fs');
+const sqlite3 = require('sqlite3').verbose();
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var birdsRouter = require('./routes/birds');
 var dbRouter = require('./routes/db');
 var timeReqRouter = require('./index.cjs');
 var Bread = require('./models/bread');
-
+const { Worker } = require('worker_threads');
+const wkpath = require('path');
+const piscina = require('piscina');
+const pool = new piscina({
+  filename: wkpath.resolve(__dirname, 'resizeWorker.js')
+});
 var app = express();
-
+const compression = require('compression');
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -22,6 +28,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(compression());
+
 
 // Middleware mounted on a path
 app.use('/users/:userId',(req,res,next)=>{
@@ -205,6 +213,101 @@ app.set('view engine', 'ntl');
 app.get('/ntl', (req, res) => {
   res.render('index', { title: 'My Page', message: 'Hello, World!' });
 });
+
+// performance optimization
+app.get('/search', (req, res) => {
+  setImmediate(() => {
+    const jsonStr = JSON.stringify({ message: 'Search results' });
+    try {
+      const jsonObj = JSON.parse(jsonStr);
+      res.send('success');
+    }
+    catch (err) {
+      res.status(400).send('Invalid JSON format');
+    }
+  }
+  )
+});
+
+// ---------------------------------------------------------------------------
+// User data for the /optimize route (SQLite table).
+// ---------------------------------------------------------------------------
+// A file-based database is used so the `users` table persists across
+// connections (a ':memory:' database is private to each connection).
+const userDbPath = process.env.USER_DB_PATH || path.join(__dirname, 'data', 'users.db');
+const userDb = new sqlite3.Database(userDbPath, (err) => {
+  if (err) {
+    console.error(`Failed to open user database at ${userDbPath}:`, err.message);
+    process.exit(1);
+  }
+  console.log(`Connected to the ${userDbPath} user database.`);
+});
+
+const { promisify } = require('util');
+
+let userData;
+userDb.serialize(() => {
+  userDb.run(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL UNIQUE,
+      role TEXT NOT NULL
+    )
+  `);
+
+  // Idempotent seed (safe on every restart: UNIQUE email + OR IGNORE).
+  const insert = userDb.prepare(
+    'INSERT OR IGNORE INTO users (name, email, role) VALUES (?, ?, ?)'
+  );
+  for (const user of [
+    ['Alice Nguyen', 'alice@example.com', 'admin'],
+    ['Bob Tran', 'bob@example.com', 'user'],
+    ['Carol Le', 'carol@example.com', 'user'],
+  ]) {
+    insert.run(user);
+  }
+  insert.finalize();
+
+  // Queued after table creation + seeding, so `userData` always resolves to
+  // the seeded users. Matches `await userData` in the /optimize route.
+  userData = promisify(userDb.all.bind(userDb))(
+    'SELECT id, name, email, role FROM users ORDER BY id'
+  );
+});
+
+// Close the database gracefully when the process shuts down.
+process.on('SIGINT', () => userDb.close());
+process.on('SIGTERM', () => userDb.close());
+
+app.get('/optimize', async (req, res, next) => {
+  const data = await userData;
+  res.send(data);
+});
+// userDb.close((err) => {
+//   if (err) {
+//     console.error('Error closing the user database:', err.message);
+//   } else {
+//     console.log('User database connection closed.');
+//   }
+// });
+app.use((err,req,res,next) => {
+  res.status(err.status??500).send(`Error: ${err.message}`);
+});
+
+// Use worker threads for CPU-intensive tasks
+app.post('/resize', (req, res, next) => {
+  const worker = new Worker('./resizeWorker.js', {
+    workerData: req.body.imageData // Assuming image data is sent in the request body
+  });
+  worker.once('message', (result) => {
+    res.send(result);
+  });
+  worker.once('error', (err) => {
+    next(err);
+  });
+});
+
 app.use('/users', usersRouter);
 app.use('/birds', birdsRouter);
 app.use('/reqtime', timeReqRouter);
